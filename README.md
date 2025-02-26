@@ -1,3 +1,2 @@
 # Educational_platform_OS
-In this platform u can communicate and upload pdf and video,
-can see them 
+Create sh file - teacher.sh and student.sh and then create a main sh file to run
