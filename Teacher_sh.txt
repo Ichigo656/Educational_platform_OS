@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# Teacher functionalities
+teacher_panel() {
+    while true; do
+        echo -e "\nTeacher Panel"
+        echo "1. Create Course"
+        echo "2. Add Materials"
+        echo "3. Send Message to Students"
+        echo "4. View Enrollments"
+        echo "5. View Student Messages"
+        echo "6. Exit"
+        read -p "Choose an option: " teacher_option
+
+        case $teacher_option in
+            1)
+                read -p "Enter course name: " course
+                if grep -q "^$course:" courses.txt; then
+                    echo "Course already exists!"
+                else
+                    date_time=$(date +"%Y-%m-%d %H:%M:%S")
+                    echo "$course:$date_time" >> courses.txt
+                    echo "Course created successfully!"
+                fi
+                ;;
+            2)
+                read -p "Enter course name: " course
+                if ! grep -q "^$course:" courses.txt; then
+                    echo "Course does not exist!"
+                else
+                    echo "Select material type:"
+                    echo "1. PDF"
+                    echo "2. Video"
+                    read -p "Choose an option: " material_type_option
+                    case $material_type_option in
+                        1)
+                            material_type="pdf"
+                            ;;
+                        2)
+                            material_type="video"
+                            ;;
+                        *)
+                            echo "Invalid option!"
+                            continue
+                            ;;
+                    esac
+                    read -p "Enter material path: " material_link
+                    echo "$course:$material_type:$material_link" >> materials.txt
+                    echo "Material added successfully!"
+                fi
+                ;;
+            3)
+                read -p "Enter message: " message
+                date_time=$(date +"%Y-%m-%d %H:%M:%S")
+                echo "Teacher:$message:$date_time" >> messages.txt
+                echo "Message sent to all students!"
+                ;;
+            4)
+                if [[ ! -s enrollments.txt ]]; then
+                    echo "No students have registered yet!"
+                else
+                    echo -e "\nEnrollments:"
+                    cat enrollments.txt
+                fi
+                ;;
+            5)
+                if [[ ! -s student_messages.txt ]]; then
+                    echo "No messages found!"
+                else
+                    echo -e "\nStudent Messages:"
+                    cat student_messages.txt
+                fi
+                ;;
+            6)
+                break
+                ;;
+            *)
+                echo "Invalid option!"
+                ;;
+        esac
+    done
+}
+
+# Run teacher panel
+teacher_panel

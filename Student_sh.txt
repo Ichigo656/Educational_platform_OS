@@ -1,0 +1,136 @@
+#!/bin/bash
+
+# Student functionalities
+student_panel() {
+    local username="$1"
+
+    while true; do
+        echo -e "\nStudent Panel (User: $username)"
+        echo "1. Enroll in Course"
+        echo "2. View Materials"
+        echo "3. View Messages"
+        echo "4. Send Message to Teacher"
+        echo "5. Exit"
+        read -p "Choose an option: " student_option
+
+        case $student_option in
+            1)
+                read -p "Enter course name to enroll: " course
+                if ! grep -q "^$course:" courses.txt; then
+                    echo "Course does not exist!"
+                else
+                    date_time=$(date +"%Y-%m-%d %H:%M:%S")
+                    echo "$username:$course:$date_time" >> enrollments.txt
+                    echo "Enrolled in course successfully!"
+                fi
+                ;;
+            2)
+                read -p "Enter course name to view materials: " course
+                # Check if the student is enrolled in the course
+                if ! grep -q "^$username:$course:" enrollments.txt; then
+                    echo "You must enroll in the course first!"
+                else
+                    if ! grep -q "^$course:" courses.txt; then
+                        echo "Course does not exist!"
+                    else
+                        echo "Select material type to view:"
+                        echo "1. PDF"
+                        echo "2. Video"
+                        read -p "Choose an option: " material_view_option
+                        case $material_view_option in
+                            1)
+                                material_type="pdf"
+                                ;;
+                            2)
+                                material_type="video"
+                                ;;
+                            *)
+                                echo "Invalid option!"
+                                continue
+                                ;;
+                        esac
+                        if ! grep -q "^$course:$material_type:" materials.txt; then
+                            echo "No materials found!"
+                        else
+                            echo "Materials for $course ($material_type):"
+                            grep "^$course:$material_type:" materials.txt | while IFS=":" read _ _ material_link; do
+                                echo "$material_link"
+                                
+                                # Open the material based on type
+                                if [[ "$material_type" == "video" ]]; then
+                                    # Use mpv to open video
+                                    mpv "$material_link" &>/dev/null &
+                                    # Or use vlc if preferred
+                                    # vlc "$material_link" &>/dev/null &
+                                else
+                                    xdg-open "$material_link" &>/dev/null &
+                                fi
+                            done
+                        fi
+                    fi
+                fi
+                ;;
+            3)
+                if [[ ! -s messages.txt ]]; then
+                    echo "No messages from the teacher!"
+                else
+                    echo "Messages:"
+                    grep "^Teacher:" messages.txt | while IFS=":" read sender msg time; do
+                        echo "$msg - $time"
+                    done
+                fi
+                ;;
+            4)
+                read -p "Enter your message to the teacher: " message
+                date_time=$(date +"%Y-%m-%d %H:%M:%S")
+                echo "$username:$message:$date_time" >> student_messages.txt
+                echo "Message sent to teacher!"
+                ;;
+            5)
+                break
+                ;;
+            *)
+                echo "Invalid option!"
+                ;;
+        esac
+    done
+}
+
+# User authentication
+user_authentication() {
+    echo "1. Register"
+    echo "2. Login"
+    read -p "Choose an option: " option
+
+    case $option in
+        1)
+            read -p "Enter username: " username
+            if grep -q "^$username:" users.txt; then
+                echo "User already exists!"
+                return
+            fi
+            read -sp "Enter password: " password
+            echo
+            echo "$username:$password" >> users.txt
+            echo "Registered successfully!"
+            student_panel "$username"
+            ;;
+        2)
+            read -p "Enter username: " username
+            read -sp "Enter password: " password
+            echo
+            if grep -q "^$username:$password" users.txt; then
+                echo "Login successful!"
+                student_panel "$username"
+            else
+                echo "Invalid credentials!"
+            fi
+            ;;
+        *)
+            echo "Invalid option!"
+            ;;
+    esac
+}
+
+# Run student panel after authentication
+user_authentication

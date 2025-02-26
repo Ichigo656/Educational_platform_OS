@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Main script to launch Teacher or Student scripts
+while true; do
+    echo -e "\nWelcome to the Portal"
+    echo "1. Teacher Login"
+    echo "2. Student Login"
+    echo "3. Exit"
+    read -p "Choose an option: " main_option
+
+    case $main_option in
+        1)
+            ./teacher.sh
+            ;;
+        2)
+            ./student.sh
+            ;;
+        3)
+            echo "Goodbye!"
+            exit 0
+            ;;
+        *)
+            echo "Invalid option!"
+            ;;
+    esac
+done
+
